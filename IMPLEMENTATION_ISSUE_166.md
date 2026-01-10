@@ -93,7 +93,7 @@ Add to your `.env.local`:
 
 ```bash
 # Required
-MONGODB_URI=mongodb+srv://user:pass@cluster.mongodb.net/dbname
+MONGODB_URI=mongodb+srv://YOUR_USERNAME:YOUR_PASSWORD@YOUR_CLUSTER.mongodb.net/YOUR_DATABASE
 
 # Optional - Connection Retry Settings
 DB_MAX_RETRIES=5              # Default: 5
