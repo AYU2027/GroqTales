@@ -20,8 +20,8 @@ router.get('/', async (req, res) => {
       .limit(limit * 1)
       .skip((page - 1) * limit)
       .sort({ createdAt: -1 })
-      .exec()
-      .lean();
+      .lean()
+      .exec();
 
     const count = await Story.countDocuments(query);
 
@@ -39,7 +39,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-// POST /api/v1/stories - Create new story
+// POST /api/v1/stories/create - Create new story
 router.post('/create', async (req, res) => {
   try {
     const { title, content, genre, author } = req.body;
@@ -59,7 +59,7 @@ router.post('/create', async (req, res) => {
   }
 });
 
-// GET /api/v1/stories/:id - Get story by ID
+// GET /api/v1/stories/search/:id - Get story by ID
 router.get('/search/:id', async (req, res) => {
   try {
     const story = await Story.findById(req.params.id).lean();
