@@ -16,6 +16,7 @@ const UserSchema = new mongoose.Schema(
     lastName: { type: String, required: true, trim: true },
     phone: { type: String, default: null },
     walletAddress: { type: String, default: null },
+    role: {type:String,enum:['user','admin'],default:'user'},
   },
   { timestamps: true }
 );
