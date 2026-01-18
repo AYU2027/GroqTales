@@ -10,8 +10,8 @@ import {
   Trophy,
   Menu,
 } from 'lucide-react';
-import Link from 'next/link';
 import Image from 'next/image';
+import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
 
@@ -208,7 +208,7 @@ export function Header() {
         </div>
 
         <div className="flex items-center space-x-2">
-          <div className="hidden md:block">
+          <div className="hidden md:block dark:hover:bg-gray-700">
             <WalletConnect />
           </div>
           <Button
@@ -236,11 +236,19 @@ export function Header() {
                   <Menu className="h-6 w-6" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="bg-[#36454F] border-l-4 border-black text-white p-0">
+              <SheetContent
+                side="right"
+                className="bg-[#36454F] border-l-4 border-black text-white p-0"
+              >
                 <SheetHeader className="p-6 border-b-4 border-black">
                   <SheetTitle className="text-white comic-pop text-xl flex items-center gap-2 text-shadow-comic">
                     <div className="w-8 h-8 relative">
-                      <Image src="/logo.png" alt="Logo" fill className="object-contain" />
+                      <Image
+                        src="/logo.png"
+                        alt="Logo"
+                        fill
+                        className="object-contain"
+                      />
                     </div>
                     GroqTales
                   </SheetTitle>
@@ -251,7 +259,11 @@ export function Header() {
                   </div>
                   {navItems.map((item, index) => (
                     <div
-                      key={item.type === 'dropdown' ? `dropdown-${item.label}` : item.href || `item-${index}`}
+                      key={
+                        item.type === 'dropdown'
+                          ? `dropdown-${item.label}`
+                          : item.href || `item-${index}`
+                      }
                       className="flex flex-col"
                     >
                       {item.type === 'dropdown' ? (
@@ -277,8 +289,9 @@ export function Header() {
                             href={item.href}
                             onClick={() => setSheetOpen(false)}
                             className={cn(
-                              "px-4 py-3 text-lg hover:bg-white/10 rounded-md transition-colors comic-text flex items-center",
-                              pathname === item.href && "bg-primary/20 text-primary"
+                              'px-4 py-3 text-lg hover:bg-white/10 rounded-md transition-colors comic-text flex items-center',
+                              pathname === item.href &&
+                                'bg-primary/20 text-primary'
                             )}
                           >
                             {item.icon}

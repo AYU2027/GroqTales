@@ -23,7 +23,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-
 import { useToast } from '@/components/ui/use-toast';
 import { truncateAddress } from '@/lib/utils';
 
@@ -57,7 +56,6 @@ export default function WalletConnect() {
   const { toast } = useToast();
   const [showDropdown, setShowDropdown] = useState(false);
   const [copyTooltip, setCopyTooltip] = useState('Click to copy');
-
 
   /**
    * Copies wallet address to clipboard
@@ -115,10 +113,10 @@ export default function WalletConnect() {
             <span>Connecting...</span>
           </>
         ) : (
-          <>
+          <div className="flex items-center gap-2 dark:hover:text-white">
             <Wallet className="h-5 w-5" />
             <span>Connect Wallet</span>
-          </>
+          </div>
         )}
       </Button>
     );
@@ -136,7 +134,10 @@ export default function WalletConnect() {
           <ChevronDown className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-64 p-0 overflow-hidden border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] bg-white dark:bg-slate-900">
+      <DropdownMenuContent
+        align="end"
+        className="w-64 p-0 overflow-hidden border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] bg-white dark:bg-slate-900"
+      >
         {/* Account Info */}
         <div className="px-4 py-3 border-b-4 border-black bg-white dark:bg-slate-900">
           <div className="flex items-center gap-3">
@@ -154,7 +155,9 @@ export default function WalletConnect() {
               <p className="text-sm font-black uppercase truncate tracking-tight text-black dark:text-white">
                 {ensName || truncateAddress(account)}
               </p>
-              <p className="text-xs font-bold text-primary italic uppercase">{balance} ETH</p>
+              <p className="text-xs font-bold text-primary italic uppercase">
+                {balance} ETH
+              </p>
             </div>
           </div>
         </div>
@@ -162,7 +165,9 @@ export default function WalletConnect() {
         {/* Network Info */}
         <div className="px-4 py-2 border-b-4 border-black bg-yellow-400">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-black uppercase text-black italic">Network:</span>
+            <span className="text-xs font-black uppercase text-black italic">
+              Network:
+            </span>
             <span className="text-xs font-black uppercase bg-white text-black px-2 py-0.5 border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
               {networkName || 'Ethereum'}
             </span>
