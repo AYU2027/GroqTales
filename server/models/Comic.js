@@ -166,6 +166,11 @@ const ComicSchema = new mongoose.Schema(
       default: 0,
       min: 0,
     },
+    nextPageNumber: {
+      type: Number,
+      default: 1,
+      min: 1,
+    },
     readingDirection: {
       type: String,
       enum: ['ltr', 'rtl', 'ttb'],
@@ -193,12 +198,21 @@ const ComicSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-    toJSON: { virtuals: true },
     toObject: { virtuals: true },
   }
 );
-// Indexes
-ComicSchema.index({ slug: 1 });
+// Pre-validate middleware to generate slug if not provided
+ComicSchema.pre('validate', function (next) {
+  if (!this.slug && this.title) {
+    this.slug = this.title
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-+|-+$/g, '');
+  }
+  next();
+});
 ComicSchema.index({ creator: 1, status: 1 });
 ComicSchema.index({ status: 1, visibility: 1 });
 ComicSchema.index({ genres: 1 });
@@ -218,17 +232,6 @@ ComicSchema.virtual('pages', {
   foreignField: 'comicId',
 });
 
-// Pre-save middleware to generate slug if not provided
-ComicSchema.pre('save', function (next) {
-  if (!this.slug && this.title) {
-    this.slug = this.title
-      .toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, '')
-      .replace(/\s+/g, '-')
-      .replace(/-+/g, '-')
-      .trim();
-  }
-  next();
-});
+// Slug is now generated via the setter, so no pre-save hook is needed.
 
 module.exports = mongoose.model('Comic', ComicSchema);

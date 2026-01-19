@@ -45,8 +45,12 @@ const validateComicInput = (data) => {
     errors.push(`Invalid genres: ${invalidGenres.join(', ')}`);
   }
 
-  if (data.tags && (!Array.isArray(data.tags) || data.tags.length > 20)) {
-    errors.push('Maximum 20 tags allowed');
+  if (data.tags) {
+    if (!Array.isArray(data.tags)) {
+      errors.push('Tags must be an array');
+    } else if (data.tags.length > 20) {
+      errors.push('Maximum 20 tags allowed');
+    }
   }
 
   if (data.visibility && !['private', 'unlisted', 'public'].includes(data.visibility)) {
@@ -81,8 +85,11 @@ const validatePageInput = (data) => {
     errors.push('Comic ID is required');
   }
 
-  if (data.pageNumber && (data.pageNumber < 1 || !Number.isInteger(Number(data.pageNumber)))) {
-    errors.push('Page number must be a positive integer');
+  if (data.pageNumber !== undefined) {
+    const num = Number(data.pageNumber);
+    if (!Number.isInteger(num) || num < 1) {
+      errors.push('Page number must be a positive integer');
+    }
   }
 
   if (!data.altText || data.altText.trim().length === 0) {

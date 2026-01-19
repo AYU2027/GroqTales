@@ -5,6 +5,7 @@
 
 const express = require('express');
 const router = express.Router();
+const { authenticate, optionalAuth, isComicCreator, canEditComic, canViewComic } = require('../middleware/auth');
 const multer = require('multer');
 const Comic = require('../models/Comic');
 const ComicPage = require('../models/ComicPage');
@@ -102,14 +103,64 @@ router.get('/', async (req, res) => {
   }
 });
 
+// ============================================================================
+// SEARCH (must be before /:slug to avoid capture)
+// ============================================================================
+
+/**
+ * GET /api/v1/comics/search/text
+ * Search comics by text
+ */
+router.get('/search/text', async (req, res) => {
+  try {
+    const { q, genres, tags, creator, limit = 20 } = req.query;
+
+    if (!q || q.trim().length < 2) {
+      return res.status(400).json({
+        success: false,
+        error: 'Search query must be at least 2 characters',
+      });
+    }
+
+    const query = {
+      $text: { $search: q },
+      status: 'published',
+      visibility: 'public',
+    };
+
+    if (genres) query.genres = { $in: Array.isArray(genres) ? genres : [genres] };
+    if (tags) query.tags = { $in: Array.isArray(tags) ? tags : [tags] };
+    if (creator) query.creator = creator;
+
+    const comics = await Comic.find(query, { score: { $meta: 'textScore' } })
+      .sort({ score: { $meta: 'textScore' } })
+      .limit(parseInt(limit))
+      .populate('creator', 'firstName lastName')
+      .lean();
+
+    res.json({
+      success: true,
+      data: comics,
+      count: comics.length,
+    });
+  } catch (error) {
+    console.error('Error searching comics:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Search failed',
+      message: error.message,
+    });
+  }
+});
+
 /**
  * GET /api/v1/comics/:slug
  * Get a single comic by slug
  */
-router.get('/:slug', async (req, res) => {
+router.get('/:slug', optionalAuth, async (req, res) => {
   try {
     const { slug } = req.params;
-    const { userId } = req.query; // For authorization checks
+    const userId = req.user?.id;
 
     const comic = await Comic.findOne({ slug })
       .populate('creator', 'firstName lastName email')
@@ -126,10 +177,15 @@ router.get('/:slug', async (req, res) => {
     // Visibility checks
     if (comic.visibility === 'private') {
       // Only creator and collaborators can view private comics
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          error: 'Authentication required',
+        });
+      }
       const hasAccess =
-        userId &&
-        (comic.creator._id.toString() === userId ||
-          comic.collaborators.some((c) => c.userId._id.toString() === userId));
+        comic.creator._id.toString() === userId ||
+        comic.collaborators.some((c) => c.userId._id.toString() === userId);
 
       if (!hasAccess) {
         return res.status(403).json({
@@ -231,7 +287,7 @@ router.post('/', async (req, res) => {
  * PATCH /api/v1/comics/:id
  * Update a comic
  */
-router.patch('/:id', async (req, res) => {
+router.patch('/:id', authenticate, async (req, res) => {
   try {
     const { id } = req.params;
     const updates = req.body;
@@ -240,18 +296,21 @@ router.patch('/:id', async (req, res) => {
     delete updates.status;
     delete updates.publishedAt;
 
-    const comic = await Comic.findByIdAndUpdate(id, updates, {
-      new: true,
-      runValidators: true,
-    });
-
+    const comic = await Comic.findById(id);
     if (!comic) {
       return res.status(404).json({
         success: false,
         error: 'Comic not found',
       });
     }
-
+    if (comic.creator.toString() !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        error: 'Access denied',
+      });
+    }
+    Object.assign(comic, updates);
+    await comic.save();
     res.json({
       success: true,
       data: comic,
@@ -270,19 +329,23 @@ router.patch('/:id', async (req, res) => {
  * DELETE /api/v1/comics/:id
  * Delete a comic (only if in draft status)
  */
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authenticate, async (req, res) => {
   try {
     const { id } = req.params;
 
     const comic = await Comic.findById(id);
-
     if (!comic) {
       return res.status(404).json({
         success: false,
         error: 'Comic not found',
       });
     }
-
+    if (comic.creator.toString() !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        error: 'Access denied',
+      });
+    }
     // Only allow deletion of drafts
     if (comic.status === 'published') {
       return res.status(400).json({
@@ -315,7 +378,7 @@ router.delete('/:id', async (req, res) => {
  * POST /api/v1/comics/:id/cover
  * Upload cover image for comic
  */
-router.post('/:id/cover', upload.single('cover'), async (req, res) => {
+router.post('/:id/cover', authenticate, upload.single('cover'), async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -331,6 +394,12 @@ router.post('/:id/cover', upload.single('cover'), async (req, res) => {
       return res.status(404).json({
         success: false,
         error: 'Comic not found',
+      });
+    }
+    if (comic.creator.toString() !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        error: 'Access denied',
       });
     }
 
@@ -410,7 +479,7 @@ router.get('/:comicId/pages', async (req, res) => {
  * POST /api/v1/comics/:comicId/pages
  * Add a new page to a comic
  */
-router.post('/:comicId/pages', upload.single('image'), async (req, res) => {
+router.post('/:comicId/pages', authenticate, upload.single('image'), async (req, res) => {
   try {
     const { comicId } = req.params;
     const { pageNumber, altText, transcript, captions, panelDescriptors } = req.body;
@@ -449,15 +518,50 @@ router.post('/:comicId/pages', upload.single('image'), async (req, res) => {
       { comicId, pageNumber }
     );
 
+    // Atomic pageNumber assignment
+    let assignedPageNumber = pageNumber;
+    if (!assignedPageNumber) {
+      const updatedComic = await Comic.findOneAndUpdate(
+        { _id: comicId },
+        { $inc: { nextPageNumber: 1 } },
+        { new: true }
+      );
+      assignedPageNumber = updatedComic.nextPageNumber - 1;
+    }
+
+    // Safe JSON parsing helper
+    function safeJsonParse(str, fallback = []) {
+      if (!str) return fallback;
+      try {
+        return JSON.parse(str);
+      } catch {
+        return null;
+      }
+    }
+    const parsedCaptions = safeJsonParse(captions, []);
+    const parsedPanelDescriptors = safeJsonParse(panelDescriptors, []);
+    if (captions && parsedCaptions === null) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid JSON in captions field',
+      });
+    }
+    if (panelDescriptors && parsedPanelDescriptors === null) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid JSON in panelDescriptors field',
+      });
+    }
+
     // Create page
     const page = await ComicPage.create({
       comicId,
-      pageNumber: pageNumber || (await ComicPage.countDocuments({ comicId })) + 1,
+      pageNumber: assignedPageNumber,
       imageAsset,
       altText,
       transcript: transcript || '',
-      captions: captions ? JSON.parse(captions) : [],
-      panelDescriptors: panelDescriptors ? JSON.parse(panelDescriptors) : [],
+      captions: parsedCaptions,
+      panelDescriptors: parsedPanelDescriptors,
       isPinned: true,
       pinnedAt: new Date(),
     });
@@ -480,7 +584,7 @@ router.post('/:comicId/pages', upload.single('image'), async (req, res) => {
  * PATCH /api/v1/comics/:comicId/pages/:pageId
  * Update a comic page
  */
-router.patch('/:comicId/pages/:pageId', async (req, res) => {
+router.patch('/:comicId/pages/:pageId', authenticate, async (req, res) => {
   try {
     const { comicId, pageId } = req.params;
     const updates = req.body;
@@ -519,7 +623,7 @@ router.patch('/:comicId/pages/:pageId', async (req, res) => {
  * DELETE /api/v1/comics/:comicId/pages/:pageId
  * Delete a comic page
  */
-router.delete('/:comicId/pages/:pageId', async (req, res) => {
+router.delete('/:comicId/pages/:pageId', authenticate, async (req, res) => {
   try {
     const { comicId, pageId } = req.params;
 
@@ -554,7 +658,7 @@ router.delete('/:comicId/pages/:pageId', async (req, res) => {
  * POST /api/v1/comics/:id/preflight
  * Run preflight checks before publishing
  */
-router.post('/:id/preflight', async (req, res) => {
+router.post('/:id/preflight', authenticate, async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -578,7 +682,7 @@ router.post('/:id/preflight', async (req, res) => {
  * POST /api/v1/comics/:id/publish
  * Publish a comic
  */
-router.post('/:id/publish', async (req, res) => {
+router.post('/:id/publish', authenticate, async (req, res) => {
   try {
     const { id } = req.params;
     const { mintNFT = false, network = 'polygon' } = req.body;
@@ -611,7 +715,7 @@ router.post('/:id/publish', async (req, res) => {
  * POST /api/v1/comics/:id/unpublish
  * Unpublish a comic (revert to draft)
  */
-router.post('/:id/unpublish', async (req, res) => {
+router.post('/:id/unpublish', authenticate, async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -638,8 +742,9 @@ router.post('/:id/unpublish', async (req, res) => {
   }
 });
 
+
 // ============================================================================
-// SEARCH
+// SEARCH (must be before /:slug to avoid capture)
 // ============================================================================
 
 /**

@@ -29,6 +29,5 @@
     "solidity-coverage": "^0.8.17"
   },
   "dependencies": {
-    "monad": "^0.0.3"
   }
 }

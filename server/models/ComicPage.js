@@ -135,16 +135,16 @@ const ComicPageSchema = new mongoose.Schema(
   }
 );
 
+
+
 // Compound unique index: one pageNumber per comic
 ComicPageSchema.index({ comicId: 1, pageNumber: 1 }, { unique: true });
-
-// Index for querying pages by comic
-ComicPageSchema.index({ comicId: 1, pageNumber: 1 });
 
 // Index for checking pinned status
 ComicPageSchema.index({ isPinned: 1 });
 
-// Pre-save middleware to update comic's totalPages
+// Post-save middleware to update comic's totalPages
+// Note: For bulk operations (e.g., deleteMany), use ComicPage.recalculateTotalPages(comicId) manually.
 ComicPageSchema.post('save', async function () {
   const Comic = mongoose.model('Comic');
   const count = await mongoose.model('ComicPage').countDocuments({
@@ -152,6 +152,29 @@ ComicPageSchema.post('save', async function () {
   });
   await Comic.findByIdAndUpdate(this.comicId, { totalPages: count });
 });
+
+// Post-remove middleware to update comic's totalPages
+ComicPageSchema.post('findOneAndDelete', async function (doc) {
+  if (doc) {
+    const Comic = mongoose.model('Comic');
+    const count = await mongoose.model('ComicPage').countDocuments({
+      comicId: doc.comicId,
+    });
+    await Comic.findByIdAndUpdate(doc.comicId, { totalPages: count });
+  }
+});
+
+// Static utility to recalculate totalPages after bulk ops
+/**
+ * Recalculate and update the totalPages field on the Comic document after bulk page operations.
+ * Must be called manually after bulk deletes/inserts.
+ * @param {ObjectId} comicId
+ */
+ComicPageSchema.statics.recalculateTotalPages = async function (comicId) {
+  const Comic = mongoose.model('Comic');
+  const count = await this.countDocuments({ comicId });
+  await Comic.findByIdAndUpdate(comicId, { totalPages: count });
+};
 
 // Post-remove middleware to update comic's totalPages
 ComicPageSchema.post('findOneAndDelete', async function (doc) {

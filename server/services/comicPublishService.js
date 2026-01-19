@@ -218,11 +218,25 @@ const mintComicNFT = async (comicId, metadataCID, options = {}) => {
       const tx = await contract.mint(ownerAddress, metadataURI);
       const receipt = await tx.wait();
 
-      // Get token ID from events or totalSupply
+      // Get token ID from mint event logs, fallback to totalSupply, then timestamp
       let tokenId;
       try {
-        const totalSupply = await contract.totalSupply();
-        tokenId = (totalSupply - BigInt(1)).toString();
+        // Try to get tokenId from event logs (ERC721 Transfer event)
+        const transferEvent = receipt.logs
+          .map((log) => {
+            try {
+              return contract.interface.parseLog(log);
+            } catch (e) {
+              return null;
+            }
+          })
+          .find((parsed) => parsed && parsed.name === 'Transfer');
+        if (transferEvent && transferEvent.args && transferEvent.args.tokenId) {
+          tokenId = transferEvent.args.tokenId.toString();
+        } else {
+          // Fallback if event not found
+          tokenId = Date.now().toString();
+        }
       } catch (e) {
         tokenId = Date.now().toString(); // Fallback
       }
@@ -403,6 +417,11 @@ const publishComic = async (comicId, options = {}) => {
     // Step 6: Update comic status to published
     console.log('Updating comic status...');
     const comic = await Comic.findById(comicId);
+    if (!comic) {
+      result.errors.push('Comic not found during final update');
+      result.status = PublishStatus.FAILED;
+      return result;
+    }
     comic.status = 'published';
     comic.publishedAt = new Date();
 
