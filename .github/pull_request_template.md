@@ -35,7 +35,6 @@ Paste logs or test results here...
 ---
 
 ## ❄️ SWOC '26 Status
-* [ ] SWOC Level:
 * [ ] I am an official contributor for Social Winter of Code 2026.
 
 ---
