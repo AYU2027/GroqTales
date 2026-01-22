@@ -15,11 +15,11 @@ const authRequired = async(req, res, next) => {
       return res.status(401).json({ success: false, message: 'Missing token' });
     }
 
-    if (!process.env.JWT_ACCESS_SECRET) {
-      return res
-        .status(501)
-        .json({ success: false, error: 'Authentication not configured' });
-    }
+    // if (!process.env.JWT_SECRET) {
+    //   return res
+    //     .status(501)
+    //     .json({ success: false, error: 'Authentication not configured' });
+    // }
     try {
       const decoded = verifyAccessToken(token);
       req.user = decoded; // { id, role }
@@ -48,6 +48,11 @@ const refresh = async(req, res) => {
   }
 
   try {
+    // if (!process.env.JWT_REFRESH_SECRET) {
+    //   return res
+    //     .status(501)
+    //     .json({ success: false, error: 'Authentication not configured' });
+    // }
     const decoded = verifyRefreshToken(token);
 
     const newAccessToken = signAccessToken({ id: decoded.id , role: decoded.role});
