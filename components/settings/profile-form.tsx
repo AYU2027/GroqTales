@@ -100,7 +100,7 @@ export function ProfileForm() {
                 <AvatarImage src={session?.user?.image || "/placeholder-avatar.jpg"} />
                 <AvatarFallback>{session?.user?.name?.slice(0, 2).toUpperCase() || "GT"}</AvatarFallback>
               </Avatar>
-              <Button variant="outline" size="sm" type="button" className="mt-2 w-full">
+              <Button variant="outline" size="sm" type="button" className="mt-2 w-full" disabled title="Coming soon">
                 Change
               </Button>
             </div>
