@@ -179,7 +179,7 @@ export function Header() {
                       {item.label}
                       <ChevronDown className="ml-1 h-3 w-3" />
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent>
+                    <DropdownMenuContent className="bg-white dark:bg-slate-950 comic-text font-bold border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-white/40">
                       {item.items?.map((subItem) => (
                         <DropdownMenuItem key={subItem.href} asChild>
                           <Link
@@ -214,7 +214,7 @@ export function Header() {
           <Button
             variant="outline"
             size="sm"
-            className="hidden md:flex bg-primary/20 hover:bg-primary/30 text-primary backdrop-blur-sm comic-pop comic-text-bold border-white/10"
+            className="hidden md:flex items-center gap-2 px-3 sm:px-5 py-1.5 sm:py-2 rounded-none bg-white text-black border-2 sm:border-4 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] sm:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-primary hover:text-white hover:border-black hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] sm:hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5 transition-all duration-200 comic-pop comic-text-bold dark:hover:border-white/50"
             onClick={handleCreateClick}
           >
             <PenSquare className="h-4 w-4 mr-2" />
@@ -290,8 +290,7 @@ export function Header() {
                             onClick={() => setSheetOpen(false)}
                             className={cn(
                               'px-4 py-3 text-lg hover:bg-white/10 rounded-md transition-colors comic-text flex items-center',
-                              pathname === item.href &&
-                                'bg-primary/20 text-primary'
+                              'bg-primary/20 text-primary'
                             )}
                           >
                             {item.icon}
