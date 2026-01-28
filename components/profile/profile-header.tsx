@@ -42,7 +42,14 @@ export function ProfileHeader({ user }: ProfileHeaderProps) {
                 <Badge variant="outline" className="flex items-center gap-1 bg-slate-900/50 border-slate-700 text-xs font-mono text-slate-400">
                   <Wallet className="w-3 h-3" />
                   {user.walletAddress.slice(0, 6)}...{user.walletAddress.slice(-4)}
-                  <Copy className="w-3 h-3 ml-1 cursor-pointer hover:text-white" />
+                  <button
+                    type="button"
+                    onClick={() => navigator.clipboard?.writeText(user.walletAddress)}
+                    aria-label="Copy wallet address"
+                    className="ml-1 text-slate-400 hover:text-white"
+                  >
+                    <Copy className="w-3 h-3" />
+                  </button>
                 </Badge>
               )}
             </div>
