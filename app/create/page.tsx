@@ -500,6 +500,9 @@ export default function CreateStoryPage() {
       // Clear story creation data from localStorage after successful submission
       localStorage.removeItem('storyCreationData');
 
+      // Clear draft on successful publication
+      localStorage.removeItem(DRAFT_KEY);
+
       // Finally, perform the redirect with a slight delay to allow toasts to be seen
       setTimeout(() => {
         console.log('Redirecting to:', redirectPath);
