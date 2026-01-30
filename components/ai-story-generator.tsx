@@ -637,12 +637,6 @@ The air crackled with energy as the first shot was fired...`;
                         <div>
                           <h3 id="draft-recovery-title" className="font-bangers text-2xl mb-2">
                             DRAFT RECOVERED!
-                          </h3>                          <Save className="h-8 w-8 text-black" />
-                        </div>
-
-                        <div>
-                          <h3 className="font-bangers text-2xl mb-2">
-                            DRAFT RECOVERED!
                           </h3>
                           <p className="text-sm text-muted-foreground">
                             We found an unsaved draft from{' '}
@@ -718,7 +712,11 @@ The air crackled with energy as the first shot was fired...`;
                           <Button
                             onClick={() => {
                               // Discard draft
-                              localStorage.removeItem(DRAFT_KEY);
+                              try {
+                                localStorage.removeItem(DRAFT_KEY);
+                              } catch (error) {
+                                console.warn('Draft discard failed:', error);
+                              }
                               setShowRecoveryModal(false);
                               setRecoveredDraft(null);
                               toast({
