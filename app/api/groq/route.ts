@@ -38,9 +38,10 @@ export async function POST(request: NextRequest) {
           theme: prompt,
           genre,
           length,
-          tone: options?.tone,
-          characters: options?.characters,
-          setting: options?.setting,
+          tone: updatedOptions?.tone,
+          characters: updatedOptions?.characters,
+          setting: updatedOptions?.setting,
+          apiKey: updatedOptions?.apiKey,
         });
         break;
       case 'analyze':
