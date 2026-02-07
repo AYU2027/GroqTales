@@ -45,7 +45,7 @@ const REFRESH_TIME_MS = ms(process.env.JWT_REFRESH_EXPIRES || '7d');
  *                 example: Doe
  *               role:
  *                 type: string
- *                 enum: [user, admin]
+ *                 enum: [user, admin,moderator]
  *                 example: user
  *               adminSecret:
  *                 type: string
@@ -244,7 +244,7 @@ router.post('/signup', async (req, res) => {
  *               properties:
  *                 message:
  *                   type: string
- *                   example: Signup successful
+ *                   example: Login successful
  *                 data:
  *                   type: object
  *                   properties:
@@ -289,7 +289,7 @@ router.post('/login', async (req, res) => {
       });
       return res.status(400).json({ error: 'Missing email or password' });
     }
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).select('+password');
     if (!user) {
       logger.warn('Login failed: invalid credentials', {
         requestId: req.id,

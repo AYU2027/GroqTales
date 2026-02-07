@@ -17,7 +17,7 @@ const UserSchema = new mongoose.Schema(
       trim: true,
       match: [/^\S+@\S+\.\S+$/, 'Invalid email address'],
     },
-    password: { type: String, required: false},
+    password: { type: String, required: false,select: false},
     username: { type: String, unique: true, sparse: true },
     firstName: { type: String, default: "Anonymous" },
     lastName: { type: String, default: "Creator" },
