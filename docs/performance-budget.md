@@ -87,12 +87,12 @@
 
 ---
 
-## Optimization Strategies Applied
+## Optimization Strategies
 
-1. **Image Optimization:** All images use Next.js `<Image>` with WebP/AVIF formats
-2. **Code Splitting:** Heavy components loaded via `next/dynamic` with `ssr: false`
-3. **Component Memoization:** `React.memo()` on frequently re-rendered components
-4. **Animation Reduction:** CSS animations preferred over Framer Motion where possible
-5. **Reduced Motion Support:** `prefers-reduced-motion` media query respected
-6. **Bundle Optimization:** `optimizePackageImports` in next.config.js for tree-shaking
-7. **Lazy Loading:** Non-critical components and images loaded lazily
+1. **Image Optimization (Applied):** All images use Next.js `<Image>` with WebP/AVIF formats
+2. **Code Splitting (Planned):** Heavy components to be loaded via `next/dynamic` with `ssr: false`
+3. **Component Memoization (Applied):** `React.memo()` on frequently re-rendered components
+4. **Animation Reduction (Applied):** CSS animations preferred over Framer Motion where possible
+5. **Reduced Motion Support (Applied):** `prefers-reduced-motion` media query respected
+6. **Bundle Optimization (Applied):** `optimizePackageImports` in next.config.js for tree-shaking
+7. **Lazy Loading (Applied):** Non-critical images loaded lazily via `loading="lazy"`

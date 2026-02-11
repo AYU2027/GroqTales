@@ -97,7 +97,13 @@ jobs:
               return;
             }
 
-            const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+            let manifest;
+            try {
+              manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+            } catch (e) {
+              console.log('Failed to parse manifest.json:', e.message);
+              return;
+            }
 
             // Build summary table
             let comment = '## Lighthouse Performance Report\n\n';
@@ -107,14 +113,29 @@ jobs:
             const routeScores = {};
 
             for (const entry of manifest) {
-              const resultPath = path.join(lhciDir, entry.jsonPath?.split('/').pop() || '');
+              const jsonFile = entry.jsonPath?.split('/').pop();
+              if (!jsonFile) continue;
+              const resultPath = path.join(lhciDir, jsonFile);
               if (!fs.existsSync(resultPath)) continue;
 
-              const result = JSON.parse(fs.readFileSync(resultPath, 'utf8'));
+              let result;
+              try {
+                result = JSON.parse(fs.readFileSync(resultPath, 'utf8'));
+              } catch (e) {
+                console.log(`Failed to parse ${jsonFile}:`, e.message);
+                continue;
+              }
               const categories = result.categories || {};
 
-              const url = new URL(entry.url || result.requestedUrl || '');
-              const route = url.pathname;
+              const rawUrl = entry.url || result.requestedUrl || '';
+              if (!rawUrl) continue;
+              let route;
+              try {
+                route = new URL(rawUrl).pathname;
+              } catch (e) {
+                console.log(`Invalid URL: ${rawUrl}`);
+                continue;
+              }
 
               if (!routeScores[route]) {
                 routeScores[route] = { perf: [], a11y: [], bp: [], seo: [] };

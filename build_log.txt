@@ -38,7 +38,7 @@ Date: 2026-02-11
 
 ### 4. Bundle Optimizations
 - Extended optimizePackageImports in next.config.js:
-  - Added: framer-motion, date-fns, recharts, @heroicons/react
+  - Added: framer-motion, date-fns, recharts
 - Added api.dicebear.com to image remotePatterns
 
 ### 5. Accessibility

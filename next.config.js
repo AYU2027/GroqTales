@@ -139,11 +139,9 @@ const nextConfig = {
   experimental: {
     optimizePackageImports: [
       'lucide-react',
-      '@radix-ui/react-icons',
       'framer-motion',
       'date-fns',
       'recharts',
-      '@heroicons/react',
     ],
     turbo: {
       rules: {
