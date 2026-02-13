@@ -640,7 +640,7 @@ router.patch('/update-price/:tokenId', authRequired, async (req, res) => {
     await nft.save();
 
     return res.json({
-      message: `NFT proce with tokenId ${tokenId} has been updated.`,
+      message: `NFT price with tokenId ${tokenId} has been updated.`,
       nft,
     });
   } catch (error) {
