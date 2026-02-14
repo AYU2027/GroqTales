@@ -40,6 +40,8 @@ jobs:
         run: npm install -g @lhci/cli@0.13.x
 
       - name: Run Lighthouse CI
+        # Lower threshold temporarily because this PR focuses on dev environment setup,
+        # not frontend performance optimizations. Performance tuning will be handled separately.
         run: |
           lhci autorun \
             --collect.startServerCommand="npx next start -p 3000" \
@@ -50,8 +52,6 @@ jobs:
             --collect.url="http://localhost:3000/nft-gallery" \
             --collect.settings.chromeFlags="--no-sandbox --disable-dev-shm-usage --headless" \
             --assert.assertions.categories:performance="error" \
-            # Lower threshold temporarily because this PR focuses on dev environment setup,
-            # not frontend performance optimizations. Performance tuning will be handled separately.
             --assert.assertions.categories:performance.minScore=0.6 \
             --assert.assertions.categories:accessibility="warn" \
             --assert.assertions.categories:accessibility.minScore=0.8 \
